@@ -1,0 +1,35 @@
+# Quiet Signal — line-ending and binary policy.
+#
+# Goal: a clone is byte-identical no matter who made it, or on which platform.
+# Text is stored as LF and checked out as LF, so a contributor's core.autocrlf
+# setting cannot leak CRLF into the repository.
+#
+# These rules take precedence over core.autocrlf. On Windows that setting is
+# frequently enabled system-wide, which is exactly the situation this file
+# exists to neutralise.
+
+# Default: text files are normalised to LF in the repository and checked out
+# as LF. git auto-detects binary content and leaves it untouched.
+* text=auto eol=lf
+
+# Windows batch scripts are the one deliberate exception — cmd.exe expects CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary assets: never normalise, never attempt a text diff.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.gif  binary
+*.ico  binary
+*.ttf  binary
+*.otf  binary
+*.jar  binary
+*.apk  binary
+*.aab  binary
+
+# Signing material: never normalise. (Also gitignored, see .gitignore.)
+*.jks      binary
+*.keystore binary
+*.p12      binary
