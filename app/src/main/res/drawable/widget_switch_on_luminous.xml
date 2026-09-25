@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Luminous intensity variant -->
+    <!-- Ambient Green Glow Behind Track -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="17dp" />
+            <solid android:color="#6686C156" />
+            <size android:width="62dp" android:height="34dp" />
+        </shape>
+    </item>
+    <!-- Liquid Channel (Track) Body - Illuminated Green -->
+    <item android:top="1dp" android:bottom="1dp" android:left="1dp" android:right="1dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="16dp" />
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#CC0A180C"
+                android:endColor="#8C142A16" />
+            <stroke
+                android:width="1dp"
+                android:color="#B386C156" />
+        </shape>
+    </item>
+    <!-- Thumb Inset Deep Shadow -->
+    <item android:left="31dp" android:right="3dp" android:top="4dp" android:bottom="2dp">
+        <shape android:shape="oval">
+            <solid android:color="#B3050C03" />
+        </shape>
+    </item>
+    <!-- Thumb Body - Tailscale Radiant Green Liquid Gradient -->
+    <item android:left="31dp" android:right="3dp" android:top="3dp" android:bottom="3dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="18dp"
+                android:centerX="0.35"
+                android:centerY="0.28"
+                android:startColor="#FFFFFF"
+                android:centerColor="#78AB48"
+                android:endColor="#223514" />
+            <stroke
+                android:width="1dp"
+                android:color="#80B4F578" />
+        </shape>
+    </item>
+    <!-- Thumb Specular Meniscus Glint -->
+    <item android:left="35dp" android:right="13dp" android:top="5dp" android:bottom="19dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#F0FFFFFF"
+                android:endColor="#33FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

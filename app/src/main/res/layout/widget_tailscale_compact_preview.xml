@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Static widget-picker preview for the 1x1 widget (android:previewLayout).
+    Deep Obsidian squircle surface with the miniature liquid-glass switch,
+    no text. Never inflated as a RemoteViews by the app.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="8dp"
+    android:background="@drawable/widget_compact_glass_obsidian">
+
+    <ImageView
+        android:layout_width="48dp"
+        android:layout_height="28dp"
+        android:layout_gravity="center"
+        android:contentDescription="@string/widget_preview_state_connected"
+        android:src="@drawable/widget_switch_mini_on"
+        android:scaleType="fitCenter" />
+</FrameLayout>

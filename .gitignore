@@ -1,0 +1,44 @@
+# --- Signing (never commit) ---
+keystore.properties
+*.jks
+*.keystore
+*.p12
+
+# --- Local machine configuration ---
+local.properties
+
+# --- Build output ---
+build/
+app/build/
+.gradle/
+captures/
+release/
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+output.json
+
+# --- IDE / tooling junk ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+*.hprof
+.kotlin/
+kotlin-profile/
+
+# --- Temporary logs / diagnostics ---
+*.log
+*.err
+build_*.txt
+*_out.txt
+verify.*
+
+# --- OS / editor ---
+.vscode/
+*.swp
+*~

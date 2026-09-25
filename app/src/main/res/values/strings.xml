@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App identity -->
+    <string name="app_name">Quiet Signal</string>
+
+    <!-- Widget defaults.
+         These are the values baked into the RemoteViews layouts; the widget
+         providers overwrite the title/state text and the switch image at
+         runtime, so they only describe the initial (Disconnected) render. -->
+    <string name="widget_title">Tailscale</string>
+    <string name="widget_state_default">Disconnected</string>
+    <string name="widget_toggle_description">Toggle Tailscale VPN</string>
+
+    <!-- Widget picker previews (static, never inflated by the app) -->
+    <string name="widget_preview_state_connected">Connected</string>
+</resources>

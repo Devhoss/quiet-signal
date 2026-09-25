@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Minimum 2x1 breakpoint (compact): used when the widget is shorter than
+    ~90dp (e.g. Smart Launcher's smallest 2x1 cell).
+    Prioritizes the control over secondary text:
+      - single-line "Tailscale" only (no state line)
+      - smaller 52x30dp switch, aspect-true via fitCenter
+      - vertically centered, fits a true 40dp-tall container without clipping
+    widget_state is present but GONE so RemoteViews setTextViewText stays safe.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="20dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:background="@drawable/widget_glass_obsidian"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Left side: Brand Label -->
+    <LinearLayout
+        android:id="@+id/widget_label_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_title"
+            android:textColor="@color/silver_bright"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.04"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:includeFontPadding="false" />
+
+        <!-- Hidden at the minimum breakpoint: no secondary state line. -->
+        <TextView
+            android:id="@+id/widget_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_state_default"
+            android:textColor="@color/silver_subtle"
+            android:textSize="11sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- Right side: smaller Liquid Glass Switch (52x30dp, never stretched) -->
+    <ImageView
+        android:id="@+id/widget_switch_view"
+        android:layout_width="52dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="12dp"
+        android:layout_gravity="center_vertical"
+        android:contentDescription="@string/widget_toggle_description"
+        android:src="@drawable/widget_switch_off"
+        android:scaleType="fitCenter" />
+</LinearLayout>

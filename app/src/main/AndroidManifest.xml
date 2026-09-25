@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Permission policy: intentionally minimal.
+
+    ACCESS_NETWORK_STATE - required to observe Android VPN evidence (TRANSPORT_VPN)
+                           through ConnectivityManager. Never used to read content.
+    VIBRATE              - required by the user-facing "Haptic Confirmation" setting
+                           and widget tap feedback (install-time, normal permission).
+
+    Quiet Signal declares NO internet permission: there is no backend, no analytics,
+    no telemetry and no account, and it never talks to any server.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <queries><package android:name="com.tailscale.ipn" /></queries>
+    <application
+        android:theme="@style/Theme.QuietSignal"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:allowBackup="true"
+        android:supportsRtl="true">
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity>
+        <receiver android:name=".widget.TailscaleWidgetProvider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/tailscale_widget_info" />
+        </receiver>
+        <receiver android:name=".widget.TailscaleCompactWidgetProvider" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/tailscale_compact_widget_info" />
+        </receiver>
+    </application>
+</manifest>
+

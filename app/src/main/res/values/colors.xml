@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Quiet Signal production color tokens.
+
+    Only tokens that are actually referenced by resources remain here. The
+    widget glass surfaces, rims and switch colours are defined directly inside
+    the drawable layer-lists (they need per-layer alpha values), and the
+    companion UI palette is defined as Compose Color constants in
+    MainActivity.kt.
+-->
+<resources>
+    <!-- Deep Obsidian base (app theme + splash) -->
+    <color name="bg_deep">#020304</color>
+
+    <!-- Widget typography (Deep Obsidian surfaces) -->
+    <color name="silver_bright">#F0F4F2</color>
+    <color name="silver_subtle">#98A29C</color>
+</resources>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Static widget-picker preview for the 2x1 widget (android:previewLayout).
+    Reuses the real Deep Obsidian liquid-glass surface and liquid-glass
+    switch drawables; shows a representative Connected state.
+    Never inflated as a RemoteViews by the app.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="20dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="12dp"
+    android:background="@drawable/widget_glass_obsidian">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_title"
+            android:textColor="@color/silver_bright"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.04"
+            android:maxLines="1"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/widget_preview_state_connected"
+            android:textColor="@color/silver_subtle"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif"
+            android:maxLines="1"
+            android:includeFontPadding="false" />
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="62dp"
+        android:layout_height="34dp"
+        android:layout_marginStart="12dp"
+        android:layout_gravity="center_vertical"
+        android:contentDescription="@string/widget_preview_state_connected"
+        android:src="@drawable/widget_switch_on"
+        android:scaleType="fitCenter" />
+</LinearLayout>

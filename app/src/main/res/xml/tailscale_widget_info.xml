@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    2x1 Tailscale widget.
+    Sizing: 2 cells wide x 1 cell tall by default (70n-30 formula).
+    Resizing stays fully enabled (horizontal + vertical); extra height is
+    consumed as breathing room by the responsive layouts in
+    TailscaleWidgetProvider (default / tall / wide+tall).
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="110dp"
+    android:minHeight="40dp"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_tailscale"
+    android:resizeMode="horizontal|vertical"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="40dp"
+    android:maxResizeWidth="530dp"
+    android:maxResizeHeight="250dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:previewLayout="@layout/widget_tailscale_preview"
+    android:previewImage="@drawable/widget_preview_2x1"
+    android:widgetCategory="home_screen" />

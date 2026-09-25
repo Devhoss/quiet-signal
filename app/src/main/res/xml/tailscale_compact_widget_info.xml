@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    1x1 Tailscale widget. Fixed squircle by design (target cell 1x1);
+    the miniature switch stays centered.
+    previewLayout (Android 12+) + previewImage (older) show the real
+    Deep Obsidian squircle instead of the app icon in the picker.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="40dp"
+    android:minHeight="40dp"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_tailscale_compact"
+    android:resizeMode="none"
+    android:targetCellWidth="1"
+    android:targetCellHeight="1"
+    android:previewLayout="@layout/widget_tailscale_compact_preview"
+    android:previewImage="@drawable/widget_preview_1x1"
+    android:widgetCategory="home_screen" />

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Luminous intensity variant -->
+    <!-- Outer Amber Glow Base -->
+    <item android:left="7dp" android:top="5dp" android:right="7dp" android:bottom="5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="#66ADB74D" />
+            <size android:width="44dp" android:height="24dp" />
+        </shape>
+    </item>
+    <!-- Liquid Mini Track Body - Amber Transit -->
+    <item android:top="6dp" android:bottom="6dp" android:left="8dp" android:right="8dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="11dp" />
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#D9241508"
+                android:endColor="#8C3A220E" />
+            <stroke
+                android:width="1dp"
+                android:color="#B3FFB74D" />
+        </shape>
+    </item>
+    <!-- Mini Thumb Body (Center / Connecting) -->
+    <item android:left="20dp" android:right="20dp" android:top="8dp" android:bottom="8dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="12dp"
+                android:centerX="0.35"
+                android:centerY="0.28"
+                android:startColor="#FFFFFF"
+                android:centerColor="#D68A36"
+                android:endColor="#4D2A08" />
+            <stroke
+                android:width="1dp"
+                android:color="#80FFD180" />
+        </shape>
+    </item>
+    <!-- Mini Thumb Glint -->
+    <item android:left="23dp" android:right="27dp" android:top="9dp" android:bottom="18dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="linear"
+                android:angle="270"
+                android:startColor="#F0FFFFFF"
+                android:endColor="#33FFFFFF" />
+        </shape>
+    </item>
+</layer-list>
