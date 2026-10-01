@@ -31,8 +31,8 @@ android {
         applicationId = "com.quiet.signal"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
     }
 
     signingConfigs {
@@ -72,4 +72,5 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.5.4")
     implementation("androidx.compose.material3:material3:1.1.2")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    testImplementation("junit:junit:4.13.2")
 }

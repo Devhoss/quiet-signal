@@ -24,8 +24,6 @@ object TailscaleIntegration {
         return context.sendBroadcastSafely(Intent(action).setComponent(ComponentName(PACKAGE, RECEIVER)))
     }
 
-    fun snapshot(): TailscaleSnapshot = StateRepository.snapshot.value
-
     private fun Context.startActivitySafely(intent: Intent): Boolean = runCatching { startActivity(intent); true }.getOrDefault(false)
     private fun Context.sendBroadcastSafely(intent: Intent): Boolean = runCatching { sendBroadcast(intent); true }.getOrElse { Log.e(TAG, "broadcast failed action=${intent.action}", it); false }
     const val TAG = "QuietSignal/Tailscale"

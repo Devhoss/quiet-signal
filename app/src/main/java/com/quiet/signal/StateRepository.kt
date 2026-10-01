@@ -21,6 +21,7 @@ object StateRepository {
     private var monitor: VpnStateMonitor? = null
     private var appContext: Context? = null
     private val handler = Handler(Looper.getMainLooper())
+    private val maxAgeMillis = 24 * 60 * 60 * 1000L
     private var timeout: Runnable? = null
     private val reconciliations = mutableListOf<Runnable>()
 
@@ -62,12 +63,12 @@ object StateRepository {
         monitor?.setCorrelation(id)
         Log.d(TAG, "${SystemClock.elapsedRealtime()} user tap transition=$nextTransition requestId=$id")
         transition = nextTransition
-        setInternal(nextState, "Waiting for VPN state · $id", true)
+        setInternal(nextState, "Waiting for VPN state · $id", true, false)
         val requestedState = if (nextTransition == TransitionState.CONNECTING) TailscaleState.DISCONNECTED else TailscaleState.CONNECTED
         val sentAt = SystemClock.elapsedRealtime()
         val sent = TailscaleIntegration.request(context, requestedState, id)
         Log.d(TAG, "${SystemClock.elapsedRealtime()} broadcast result returned=$sent requestId=$id elapsedSinceSent=${SystemClock.elapsedRealtime() - sentAt}ms")
-        if (!sent) setInternal(TailscaleState.ERROR, "Tailscale broadcast could not be sent", false)
+        if (!sent) setInternal(TailscaleState.ERROR, "Tailscale broadcast could not be sent", false, false)
         Log.d(TAG, "$id broadcast sent=$sent observed=$observed transition=$nextTransition")
         scheduleTimeout(id)
         // Network Recheck controls ONLY the additional one-shot reconciliation
@@ -83,21 +84,30 @@ object StateRepository {
 
     fun setObserved(evidence: VpnEvidence) {
         Log.d(TAG, "${SystemClock.elapsedRealtime()} VPN evidence detected=$evidence requestId=${monitor?.correlationId() ?: "-"}")
-        observed = when (evidence) { VpnEvidence.VPN_PRESENT -> ObservedState.CONNECTED; VpnEvidence.VPN_ABSENT -> ObservedState.DISCONNECTED; VpnEvidence.UNAVAILABLE -> ObservedState.UNKNOWN }
-        resolve()
+        observed = currentObserved(evidence)
+        resolve(evidence != VpnEvidence.UNAVAILABLE)
         if (transition == TransitionState.NONE) cancelReconciliations()
     }
 
     fun timeout(id: String) {
-        monitor?.currentEvidence()?.let { evidence -> observed = when (evidence) { VpnEvidence.VPN_PRESENT -> ObservedState.CONNECTED; VpnEvidence.VPN_ABSENT -> ObservedState.DISCONNECTED; VpnEvidence.UNAVAILABLE -> ObservedState.UNKNOWN } }
+        val evidence = monitor?.currentEvidence()
+        val probeConfirmed = evidence != null && evidence != VpnEvidence.UNAVAILABLE
+        // A timeout must be judged by the raw probe only; the persisted last-known fallback
+        // is reserved for passive repaint, so an inconclusive timeout can never render
+        // yesterday's disk value as a successful transition.
+        observed = when (evidence) {
+            VpnEvidence.VPN_PRESENT -> ObservedState.CONNECTED
+            VpnEvidence.VPN_ABSENT -> ObservedState.DISCONNECTED
+            else -> ObservedState.UNKNOWN
+        }
         val failed = when (transition) { TransitionState.CONNECTING -> observed != ObservedState.CONNECTED; TransitionState.DISCONNECTING -> observed != ObservedState.DISCONNECTED; TransitionState.NONE -> false }
         if (failed) observed = ObservedState.UNKNOWN
         transition = TransitionState.NONE
         Log.d(TAG, "$id timeout observed=$observed transition=$transition")
-        resolve()
+        resolve(probeConfirmed)
     }
 
-    private fun resolve() {
+    private fun resolve(probeConfirmed: Boolean) {
         val state = when {
             transition == TransitionState.CONNECTING && observed == ObservedState.CONNECTED -> { transition = TransitionState.NONE; TailscaleState.CONNECTED }
             transition == TransitionState.CONNECTING -> TailscaleState.CONNECTING
@@ -108,11 +118,11 @@ object StateRepository {
             else -> TailscaleState.UNKNOWN
         }
         val detail = when (state) { TailscaleState.CONNECTED -> "VPN active · best-effort evidence"; TailscaleState.DISCONNECTED -> "No active VPN detected"; TailscaleState.UNKNOWN -> "VPN state unavailable"; else -> "Waiting for VPN state" }
-        setInternal(state, detail, false)
+        setInternal(state, detail, false, probeConfirmed)
         if (transition == TransitionState.NONE) cancelReconciliations()
     }
 
-    private fun setInternal(state: TailscaleState, detail: String, isTransition: Boolean) {
+    private fun setInternal(state: TailscaleState, detail: String, isTransition: Boolean, probeConfirmed: Boolean) {
         val old = _snapshot.value.state
         _snapshot.value = TailscaleSnapshot(
             state = state,
@@ -121,8 +131,19 @@ object StateRepository {
             transport = transportFor(state)
         )
         Log.d(TAG, "${SystemClock.elapsedRealtime()} state store $old -> $state detail=$detail")
+        if (old == state) return
+        if (transition == TransitionState.NONE && probeConfirmed) appContext?.let { StatePersistence.save(it, observed) }
         appContext?.let { WidgetUpdater.updateAll(it) }
         if (isTransition) Log.d(TAG, "UI/widget update requested state=$state")
+    }
+
+    private fun currentObserved(evidence: VpnEvidence): ObservedState {
+        // SharedPreferences reads hit the disk on the caller's thread; the resolver only
+        // consults the persisted value when the live probe is inconclusive, so load lazily.
+        val persisted = if (evidence == VpnEvidence.UNAVAILABLE) {
+            appContext?.let { StatePersistence.load(it, System.currentTimeMillis()) }
+        } else null
+        return resolveObserved(evidence, persisted?.first, persisted?.second, maxAgeMillis)
     }
 
     /**
