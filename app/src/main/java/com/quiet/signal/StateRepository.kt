@@ -21,6 +21,7 @@ object StateRepository {
     private var monitor: VpnStateMonitor? = null
     private var appContext: Context? = null
     private val handler = Handler(Looper.getMainLooper())
+    private val maxAgeMillis = 24 * 60 * 60 * 1000L
     private var timeout: Runnable? = null
     private val reconciliations = mutableListOf<Runnable>()
 
@@ -83,13 +84,13 @@ object StateRepository {
 
     fun setObserved(evidence: VpnEvidence) {
         Log.d(TAG, "${SystemClock.elapsedRealtime()} VPN evidence detected=$evidence requestId=${monitor?.correlationId() ?: "-"}")
-        observed = when (evidence) { VpnEvidence.VPN_PRESENT -> ObservedState.CONNECTED; VpnEvidence.VPN_ABSENT -> ObservedState.DISCONNECTED; VpnEvidence.UNAVAILABLE -> ObservedState.UNKNOWN }
+        observed = currentObserved(evidence)
         resolve()
         if (transition == TransitionState.NONE) cancelReconciliations()
     }
 
     fun timeout(id: String) {
-        monitor?.currentEvidence()?.let { evidence -> observed = when (evidence) { VpnEvidence.VPN_PRESENT -> ObservedState.CONNECTED; VpnEvidence.VPN_ABSENT -> ObservedState.DISCONNECTED; VpnEvidence.UNAVAILABLE -> ObservedState.UNKNOWN } }
+        monitor?.currentEvidence()?.let { observed = currentObserved(it) }
         val failed = when (transition) { TransitionState.CONNECTING -> observed != ObservedState.CONNECTED; TransitionState.DISCONNECTING -> observed != ObservedState.DISCONNECTED; TransitionState.NONE -> false }
         if (failed) observed = ObservedState.UNKNOWN
         transition = TransitionState.NONE
@@ -122,8 +123,15 @@ object StateRepository {
         )
         Log.d(TAG, "${SystemClock.elapsedRealtime()} state store $old -> $state detail=$detail")
         if (old == state) return
+        if (transition == TransitionState.NONE) appContext?.let { StatePersistence.save(it, observed) }
         appContext?.let { WidgetUpdater.updateAll(it) }
         if (isTransition) Log.d(TAG, "UI/widget update requested state=$state")
+    }
+
+    private fun currentObserved(evidence: VpnEvidence): ObservedState {
+        val ctx = appContext
+        val persisted = ctx?.let { StatePersistence.load(it, System.currentTimeMillis()) }
+        return resolveObserved(evidence, persisted?.first, persisted?.second, maxAgeMillis)
     }
 
     /**
