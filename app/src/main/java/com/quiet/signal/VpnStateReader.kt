@@ -20,7 +20,7 @@ class VpnStateMonitor(private val context: Context) {
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            vpnNetworks += network
+            // Capabilities may be unknown for a brand-new network; adding it here would make evidence() claim VPN_PRESENT for any plain Wi-Fi connect. Membership is decided only by onCapabilitiesChanged's TRANSPORT_VPN check.
             log("callback onAvailable network=$network requestId=$correlationId")
             reconcile()
         }
@@ -41,7 +41,8 @@ class VpnStateMonitor(private val context: Context) {
         if (started) return
         started = true
         try {
-            val request = NetworkRequest.Builder().addTransportType(NetworkCapabilities.TRANSPORT_VPN).build()
+            // A transport-filtered LISTEN request gains an implicit NOT_VPN capability (AOSP maybeMarkCapabilitiesRestricted) that VPN networks can never satisfy — watch everything and filter by transport in callbacks instead.
+            val request = NetworkRequest.Builder().build()
             manager.registerNetworkCallback(request, callback)
             log("callback registered requestId=$correlationId")
         } catch (t: Throwable) {
