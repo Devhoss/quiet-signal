@@ -4,6 +4,15 @@ All notable changes to Quiet Signal are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-10-01
+
+### Fixed
+
+- The widget no longer shows "disconnected" when the app process was
+  killed and the launcher repaints it. Every repaint now probes live VPN
+  evidence; the last settled state is persisted and used only when the probe
+  itself cannot see connectivity.
+
 ## [1.0.0] - 2026-09-25
 
 Initial public release. Open source on GitHub, distributed as a manually installed APK.
@@ -56,4 +65,5 @@ Initial public release. Open source on GitHub, distributed as a manually install
   Tailscale owns it. Another VPN app produces the same evidence.
 - Connect/disconnect depends on Tailscale's own (unofficial) broadcast receiver contract.
 
+[1.0.1]: https://github.com/Devhoss/quiet-signal/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Devhoss/quiet-signal/releases/tag/v1.0.0
