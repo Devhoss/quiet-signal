@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.net.NetworkRequest
 import android.os.SystemClock
 import android.util.Log
 
@@ -41,9 +40,8 @@ class VpnStateMonitor(private val context: Context) {
         if (started) return
         started = true
         try {
-            // A transport-filtered LISTEN request gains an implicit NOT_VPN capability (AOSP maybeMarkCapabilitiesRestricted) that VPN networks can never satisfy — watch everything and filter by transport in callbacks instead.
-            val request = NetworkRequest.Builder().build()
-            manager.registerNetworkCallback(request, callback)
+            // Every app-registered registerNetworkCallback request gains an implicit NET_CAPABILITY_NOT_VPN (AOSP maybeMarkCapabilitiesRestricted), which VPN networks can never satisfy — even a filter-free one. registerDefaultNetworkCallback is the public path that tracks our default network including when it is a VPN; callbacks filter by transport.
+            manager.registerDefaultNetworkCallback(callback)
             log("callback registered requestId=$correlationId")
         } catch (t: Throwable) {
             Log.e(TAG, "VPN callback registration failed", t)
