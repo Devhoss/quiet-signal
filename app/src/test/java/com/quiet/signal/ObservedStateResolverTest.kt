@@ -26,4 +26,9 @@ class ObservedStateResolverTest {
     @Test fun unavailableWithNoPersistedIsUnknown() {
         assertEquals(ObservedState.UNKNOWN, resolveObserved(VpnEvidence.UNAVAILABLE, null, null, maxAge))
     }
+
+    @Test fun unavailableWithNegativeAgeIsUnknown() {
+        // A future timestamp (clock rollback) yields a negative age and must not be trusted.
+        assertEquals(ObservedState.UNKNOWN, resolveObserved(VpnEvidence.UNAVAILABLE, ObservedState.CONNECTED, -60_000, maxAge))
+    }
 }

@@ -92,7 +92,14 @@ object StateRepository {
     fun timeout(id: String) {
         val evidence = monitor?.currentEvidence()
         val probeConfirmed = evidence != null && evidence != VpnEvidence.UNAVAILABLE
-        evidence?.let { observed = currentObserved(it) }
+        // A timeout must be judged by the raw probe only; the persisted last-known fallback
+        // is reserved for passive repaint, so an inconclusive timeout can never render
+        // yesterday's disk value as a successful transition.
+        observed = when (evidence) {
+            VpnEvidence.VPN_PRESENT -> ObservedState.CONNECTED
+            VpnEvidence.VPN_ABSENT -> ObservedState.DISCONNECTED
+            else -> ObservedState.UNKNOWN
+        }
         val failed = when (transition) { TransitionState.CONNECTING -> observed != ObservedState.CONNECTED; TransitionState.DISCONNECTING -> observed != ObservedState.DISCONNECTED; TransitionState.NONE -> false }
         if (failed) observed = ObservedState.UNKNOWN
         transition = TransitionState.NONE
@@ -131,8 +138,11 @@ object StateRepository {
     }
 
     private fun currentObserved(evidence: VpnEvidence): ObservedState {
-        val ctx = appContext
-        val persisted = ctx?.let { StatePersistence.load(it, System.currentTimeMillis()) }
+        // SharedPreferences reads hit the disk on the caller's thread; the resolver only
+        // consults the persisted value when the live probe is inconclusive, so load lazily.
+        val persisted = if (evidence == VpnEvidence.UNAVAILABLE) {
+            appContext?.let { StatePersistence.load(it, System.currentTimeMillis()) }
+        } else null
         return resolveObserved(evidence, persisted?.first, persisted?.second, maxAgeMillis)
     }
 
