@@ -4,6 +4,21 @@ All notable changes to Quiet Signal are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-10-01
+
+### Fixed
+
+- Quieted the release-build log: now that VPN callbacks actually arrive, Samsung's
+  periodic re-advertisement of unchanged default-network capabilities was emitting
+  `QuietSignal/VpnMonitor` lines every few seconds. The monitor now logs and
+  dispatches only on a real VPN-evidence transition.
+
+### Changed
+
+- Documented that `ObservedState` is persisted by name, so a future rename cannot
+  silently drop the 24h fallback without a visible guardrail (behaviour unchanged;
+  `load()` already degrades an unparseable name to a fresh probe).
+
 ## [1.0.1] - 2026-10-01
 
 ### Fixed
@@ -12,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   killed and the launcher repaints it. Every repaint now probes live VPN
   evidence; the last settled state is persisted and used only when the probe
   itself cannot see connectivity.
+- VPN connect/disconnect now reaches the widget live via `registerDefaultNetworkCallback`
+  (the previous transport-filtered `registerNetworkCallback` was unsatisfiable because
+  AOSP adds an implicit `NOT_VPN` capability), so an external Tailscale toggle updates
+  the widget in seconds instead of waiting for the next repaint.
 
 ## [1.0.0] - 2026-09-25
 
