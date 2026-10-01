@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+// Persisted by name in StatePersistence; renaming or removing an entry silently drops the 24h fallback on existing installs (load() falls back to UNKNOWN). Keep these wire names stable.
 enum class ObservedState { UNKNOWN, DISCONNECTED, CONNECTED }
 enum class TransitionState { NONE, CONNECTING, DISCONNECTING }
 

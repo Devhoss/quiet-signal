@@ -15,6 +15,7 @@ class VpnStateMonitor(private val context: Context) {
     private val vpnNetworks = mutableSetOf<Network>()
     private var listener: ((VpnEvidence) -> Unit)? = null
     private var started = false
+    private var lastEvidence: VpnEvidence? = null
     private var correlationId: String = "-"
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
@@ -24,9 +25,13 @@ class VpnStateMonitor(private val context: Context) {
             reconcile()
         }
         override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
-            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)) vpnNetworks += network else vpnNetworks -= network
-            log("callback onCapabilitiesChanged network=$network vpn=${capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)} requestId=$correlationId")
-            reconcile()
+            val isVpn = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+            val changed = if (isVpn) vpnNetworks.add(network) else vpnNetworks.remove(network)
+            // Samsung re-advertises unchanged capabilities periodically; log only real VPN membership transitions.
+            if (changed) {
+                log("callback onCapabilitiesChanged network=$network vpn=$isVpn requestId=$correlationId")
+                reconcile()
+            }
         }
         override fun onLost(network: Network) {
             vpnNetworks -= network
@@ -58,11 +63,16 @@ class VpnStateMonitor(private val context: Context) {
         if (!started) return
         runCatching { manager.unregisterNetworkCallback(callback) }.onFailure { Log.e(TAG, "VPN callback unregister failed", it) }
         started = false
+        lastEvidence = null
         log("callback unregistered")
     }
 
     private fun reconcile() {
         val evidence = evidence()
+        // Samsung re-advertises the same default-network capabilities every few seconds; re-dispatching
+        // unchanged evidence only logs and hits SharedPreferences, so notify only on a real transition.
+        if (evidence == lastEvidence) return
+        lastEvidence = evidence
         log("snapshot vpnNetworks=${vpnNetworks.size} evidence=$evidence requestId=$correlationId")
         listener?.invoke(evidence)
     }
