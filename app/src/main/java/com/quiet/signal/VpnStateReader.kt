@@ -19,7 +19,7 @@ class VpnStateMonitor(private val context: Context) {
 
     private val callback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            // Capabilities may be unknown for a brand-new network; adding it here would make evidence() claim VPN_PRESENT for any plain Wi-Fi connect. Membership is decided only by onCapabilitiesChanged's TRANSPORT_VPN check.
+            // Never add here: capabilities are unknown for a brand-new network and evidence() trusts set membership.
             log("callback onAvailable network=$network requestId=$correlationId")
             reconcile()
         }
@@ -40,7 +40,7 @@ class VpnStateMonitor(private val context: Context) {
         if (started) return
         started = true
         try {
-            // Every app-registered registerNetworkCallback request gains an implicit NET_CAPABILITY_NOT_VPN (AOSP maybeMarkCapabilitiesRestricted), which VPN networks can never satisfy — even a filter-free one. registerDefaultNetworkCallback is the public path that tracks our default network including when it is a VPN; callbacks filter by transport.
+            // On AOSP/Samsung, every app-registered registerNetworkCallback request gains an implicit NET_CAPABILITY_NOT_VPN (maybeMarkCapabilitiesRestricted) that VPN networks can never satisfy — even filter-free. The default-network callback is the public path that sees a VPN once it becomes the default network; VPNs that never do (strict split tunnel) stay covered only by the synchronous probe in evidence().
             manager.registerDefaultNetworkCallback(callback)
             log("callback registered requestId=$correlationId")
         } catch (t: Throwable) {
