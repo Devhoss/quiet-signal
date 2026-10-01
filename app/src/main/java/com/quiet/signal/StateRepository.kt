@@ -121,6 +121,7 @@ object StateRepository {
             transport = transportFor(state)
         )
         Log.d(TAG, "${SystemClock.elapsedRealtime()} state store $old -> $state detail=$detail")
+        if (old == state) return
         appContext?.let { WidgetUpdater.updateAll(it) }
         if (isTransition) Log.d(TAG, "UI/widget update requested state=$state")
     }

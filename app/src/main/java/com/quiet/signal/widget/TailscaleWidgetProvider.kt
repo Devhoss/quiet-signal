@@ -17,7 +17,6 @@ import com.quiet.signal.GreenIntensity
 import com.quiet.signal.R
 import com.quiet.signal.SettingsRepository
 import com.quiet.signal.StateRepository
-import com.quiet.signal.TailscaleIntegration
 import com.quiet.signal.TailscaleSnapshot
 import com.quiet.signal.TailscaleState
 
@@ -32,7 +31,7 @@ class TailscaleWidgetProvider : AppWidgetProvider() {
             if (SettingsRepository.settings.value.hapticFeedback) {
                 performHaptic(context)
             }
-            val current = StateRepository.snapshot.value.state
+            val current = StateRepository.refresh(context).state
             when (current) {
                 TailscaleState.CONNECTED -> StateRepository.requestDisconnect(context)
                 TailscaleState.DISCONNECTED -> StateRepository.requestConnect(context)
@@ -56,7 +55,7 @@ class TailscaleWidgetProvider : AppWidgetProvider() {
 
     private fun render(context: Context, manager: AppWidgetManager, id: Int) {
         SettingsRepository.init(context)
-        val snapshot = TailscaleIntegration.snapshot()
+        val snapshot = StateRepository.refresh(context)
         val settings = SettingsRepository.settings.value
 
         val bgRes = when (settings.material) {
