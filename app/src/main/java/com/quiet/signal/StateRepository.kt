@@ -32,8 +32,6 @@ object StateRepository {
             val m = VpnStateMonitor(app)
             monitor = m
             m.start({ evidence -> setObserved(evidence) }, { error -> Log.e(TAG, "monitor error", error) })
-        } else {
-            monitor?.currentEvidence()?.let { setObserved(it) }
         }
     }
 
@@ -89,17 +87,22 @@ object StateRepository {
         if (transition == TransitionState.NONE) cancelReconciliations()
     }
 
+    // Reconciliation-sweep decision path: judges the raw probe exactly like timeout() so an
+    // inconclusive sweep can never render the persisted disk value as a successful transition;
+    // the pending transition survives inconclusive sweeps, leaving timeout() the sole fail-safe.
+    private fun applyProbe(evidence: VpnEvidence?) {
+        observed = resolveProbeOnly(evidence)
+        resolve(evidence != null && evidence != VpnEvidence.UNAVAILABLE)
+        if (transition == TransitionState.NONE) cancelReconciliations()
+    }
+
     fun timeout(id: String) {
         val evidence = monitor?.currentEvidence()
         val probeConfirmed = evidence != null && evidence != VpnEvidence.UNAVAILABLE
         // A timeout must be judged by the raw probe only; the persisted last-known fallback
         // is reserved for passive repaint, so an inconclusive timeout can never render
         // yesterday's disk value as a successful transition.
-        observed = when (evidence) {
-            VpnEvidence.VPN_PRESENT -> ObservedState.CONNECTED
-            VpnEvidence.VPN_ABSENT -> ObservedState.DISCONNECTED
-            else -> ObservedState.UNKNOWN
-        }
+        observed = resolveProbeOnly(evidence)
         val failed = when (transition) { TransitionState.CONNECTING -> observed != ObservedState.CONNECTED; TransitionState.DISCONNECTING -> observed != ObservedState.DISCONNECTED; TransitionState.NONE -> false }
         if (failed) observed = ObservedState.UNKNOWN
         transition = TransitionState.NONE
@@ -164,7 +167,7 @@ object StateRepository {
                 if (transition == TransitionState.NONE) return@Runnable
                 val evidence = monitor?.currentEvidence()
                 Log.d(TAG, "${SystemClock.elapsedRealtime()} one-shot reconciliation delay=${delay}ms evidence=$evidence requestId=$id")
-                evidence?.let { setObserved(it) }
+                applyProbe(evidence)
             }
             reconciliations += runnable
             handler.postDelayed(runnable, delay)

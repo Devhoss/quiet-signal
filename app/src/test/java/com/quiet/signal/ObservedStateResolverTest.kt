@@ -31,4 +31,20 @@ class ObservedStateResolverTest {
         // A future timestamp (clock rollback) yields a negative age and must not be trusted.
         assertEquals(ObservedState.UNKNOWN, resolveObserved(VpnEvidence.UNAVAILABLE, ObservedState.CONNECTED, -60_000, maxAge))
     }
+
+    @Test fun probeOnlyPresentMapsToConnected() {
+        assertEquals(ObservedState.CONNECTED, resolveProbeOnly(VpnEvidence.VPN_PRESENT))
+    }
+
+    @Test fun probeOnlyAbsentMapsToDisconnected() {
+        assertEquals(ObservedState.DISCONNECTED, resolveProbeOnly(VpnEvidence.VPN_ABSENT))
+    }
+
+    @Test fun probeOnlyUnavailableNeverUsesPersisted() {
+        assertEquals(ObservedState.UNKNOWN, resolveProbeOnly(VpnEvidence.UNAVAILABLE))
+    }
+
+    @Test fun probeOnlyNullEvidenceMapsToUnknown() {
+        assertEquals(ObservedState.UNKNOWN, resolveProbeOnly(null))
+    }
 }
