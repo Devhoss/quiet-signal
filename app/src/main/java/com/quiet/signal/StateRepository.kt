@@ -63,12 +63,12 @@ object StateRepository {
         monitor?.setCorrelation(id)
         Log.d(TAG, "${SystemClock.elapsedRealtime()} user tap transition=$nextTransition requestId=$id")
         transition = nextTransition
-        setInternal(nextState, "Waiting for VPN state · $id", true)
+        setInternal(nextState, "Waiting for VPN state · $id", true, false)
         val requestedState = if (nextTransition == TransitionState.CONNECTING) TailscaleState.DISCONNECTED else TailscaleState.CONNECTED
         val sentAt = SystemClock.elapsedRealtime()
         val sent = TailscaleIntegration.request(context, requestedState, id)
         Log.d(TAG, "${SystemClock.elapsedRealtime()} broadcast result returned=$sent requestId=$id elapsedSinceSent=${SystemClock.elapsedRealtime() - sentAt}ms")
-        if (!sent) setInternal(TailscaleState.ERROR, "Tailscale broadcast could not be sent", false)
+        if (!sent) setInternal(TailscaleState.ERROR, "Tailscale broadcast could not be sent", false, false)
         Log.d(TAG, "$id broadcast sent=$sent observed=$observed transition=$nextTransition")
         scheduleTimeout(id)
         // Network Recheck controls ONLY the additional one-shot reconciliation
@@ -85,20 +85,22 @@ object StateRepository {
     fun setObserved(evidence: VpnEvidence) {
         Log.d(TAG, "${SystemClock.elapsedRealtime()} VPN evidence detected=$evidence requestId=${monitor?.correlationId() ?: "-"}")
         observed = currentObserved(evidence)
-        resolve()
+        resolve(evidence != VpnEvidence.UNAVAILABLE)
         if (transition == TransitionState.NONE) cancelReconciliations()
     }
 
     fun timeout(id: String) {
-        monitor?.currentEvidence()?.let { observed = currentObserved(it) }
+        val evidence = monitor?.currentEvidence()
+        val probeConfirmed = evidence != null && evidence != VpnEvidence.UNAVAILABLE
+        evidence?.let { observed = currentObserved(it) }
         val failed = when (transition) { TransitionState.CONNECTING -> observed != ObservedState.CONNECTED; TransitionState.DISCONNECTING -> observed != ObservedState.DISCONNECTED; TransitionState.NONE -> false }
         if (failed) observed = ObservedState.UNKNOWN
         transition = TransitionState.NONE
         Log.d(TAG, "$id timeout observed=$observed transition=$transition")
-        resolve()
+        resolve(probeConfirmed)
     }
 
-    private fun resolve() {
+    private fun resolve(probeConfirmed: Boolean) {
         val state = when {
             transition == TransitionState.CONNECTING && observed == ObservedState.CONNECTED -> { transition = TransitionState.NONE; TailscaleState.CONNECTED }
             transition == TransitionState.CONNECTING -> TailscaleState.CONNECTING
@@ -109,11 +111,11 @@ object StateRepository {
             else -> TailscaleState.UNKNOWN
         }
         val detail = when (state) { TailscaleState.CONNECTED -> "VPN active · best-effort evidence"; TailscaleState.DISCONNECTED -> "No active VPN detected"; TailscaleState.UNKNOWN -> "VPN state unavailable"; else -> "Waiting for VPN state" }
-        setInternal(state, detail, false)
+        setInternal(state, detail, false, probeConfirmed)
         if (transition == TransitionState.NONE) cancelReconciliations()
     }
 
-    private fun setInternal(state: TailscaleState, detail: String, isTransition: Boolean) {
+    private fun setInternal(state: TailscaleState, detail: String, isTransition: Boolean, probeConfirmed: Boolean) {
         val old = _snapshot.value.state
         _snapshot.value = TailscaleSnapshot(
             state = state,
@@ -123,7 +125,7 @@ object StateRepository {
         )
         Log.d(TAG, "${SystemClock.elapsedRealtime()} state store $old -> $state detail=$detail")
         if (old == state) return
-        if (transition == TransitionState.NONE) appContext?.let { StatePersistence.save(it, observed) }
+        if (transition == TransitionState.NONE && probeConfirmed) appContext?.let { StatePersistence.save(it, observed) }
         appContext?.let { WidgetUpdater.updateAll(it) }
         if (isTransition) Log.d(TAG, "UI/widget update requested state=$state")
     }
