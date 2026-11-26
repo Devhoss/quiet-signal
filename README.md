@@ -30,7 +30,7 @@ permission at all**.
 ## Features
 
 * **1×1 liquid-glass widget** — miniature horizontal switch in a tuned squircle housing, no text, no clipping.
-* **Responsive 2×1 widget** — one provider, four breakpoints (minimum, normal, tall, wide + tall);
+* **Responsive 2×1 widget** — one provider, five breakpoints (narrow, minimum, normal, tall, wide + tall);
   extra space becomes breathing room, never a dashboard.
 * **Connect / disconnect control** — taps are forwarded to the official Tailscale app.
 * **Three widget surfaces**
@@ -67,12 +67,13 @@ taken at the **Normal** breakpoint (brand + state line) on a 420 dpi device.
 
 ### 2×1 widget breakpoints
 
-The 2×1 widget is a single provider with four layouts. `TailscaleWidgetProvider` measures the current
+The 2×1 widget is a single provider with five layouts. `TailscaleWidgetProvider` measures the current
 widget size in dp and picks the layout automatically; extra space always becomes breathing room — the
 switch is fixed-size and is never stretched.
 
 | Breakpoint | Selected when | Layout | What renders |
 | --- | --- | --- | --- |
+| **Narrow** | width ≤ 90 dp | `widget_tailscale_narrow` | brand + switch turned 90° along the tall axis — no horizontal layout fits a rotated cell |
 | **Minimum** | height < 90 dp | `widget_tailscale_minimal` | brand only, no state line, 52 × 30 dp switch |
 | **Normal** | height ≥ 90 dp | `widget_tailscale` | brand + state line, 62 × 34 dp switch |
 | **Tall** | height ≥ 150 dp | `widget_tailscale_tall` | Normal, plus 22 dp top/bottom padding |
@@ -80,6 +81,12 @@ switch is fixed-size and is never stretched.
 
 The Android 12+ `SizeF` mapping and the pre-12 `layoutFor()` fallback share the same thresholds, so
 the breakpoint behaviour is identical on older launchers.
+
+> **Rotation is a narrow cell.** Launchers that keep a portrait grid when the device is in landscape
+> report the 2×1 cell rotated — Smart Launcher, for example, turns 235 × 50 dp into **50 × 229 dp**. Every
+> horizontal layout needs at least 110 dp of width, so Android's size-mapped `RemoteViews` finds no
+> layout that fits; the narrow breakpoint exists so the widget is drawn down the tall axis (brand at
+> the top, switch at the bottom, both turned counter-clockwise) instead of as an empty housing.
 
 > **The state line needs a second row.** A 2×1 widget placed at its default size
 > (`targetCellHeight="1"`, i.e. one launcher row) is shorter than 90 dp — measured **52 dp** on a
@@ -94,7 +101,7 @@ the breakpoint behaviour is identical on older launchers.
 Quiet Signal is distributed **manually through GitHub Releases** (it is not published on Google Play).
 
 1. Install the official **Tailscale** app from Google Play and sign in.
-2. Download `QuietSignal-v1.0.0.apk` from the [Releases](../../releases) page.
+2. Download `QuietSignal-v1.0.3.apk` from the [Releases](../../releases) page.
 3. Allow installation from your browser/file manager when Android asks (Settings → Apps →
    Special access → Install unknown apps).
 4. Install, open **Quiet Signal** once, then add the widgets from your launcher's widget picker.

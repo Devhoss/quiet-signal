@@ -84,7 +84,14 @@ class TailscaleWidgetProvider : AppWidgetProvider() {
             // Android 12+ responsive sizing: one update maps sizes (dp) to
             // layouts; the launcher swaps them live while the user resizes.
             // Keys are the smallest size at which each layout applies.
+            // Android picks the nearest layout whose ideal size still fits
+            // inside the reported cell, so the narrow key must be listed here
+            // too: a rotated cell (~50 x 229 dp) is narrower than every
+            // horizontal layout and would otherwise fall back to the smallest
+            // one, whose content is clipped away entirely.
             val mapping = linkedMapOf(
+                SizeF(NARROW_MIN_WIDTH_DP.toFloat(), NARROW_MIN_HEIGHT_DP.toFloat()) to
+                    buildViews(context, id, R.layout.widget_tailscale_narrow, bgRes, switchRes, snapshot),
                 SizeF(MIN_WIDTH_DP.toFloat(), MIN_HEIGHT_DP.toFloat()) to
                     buildViews(context, id, R.layout.widget_tailscale_minimal, bgRes, switchRes, snapshot),
                 SizeF(MIN_WIDTH_DP.toFloat(), NORMAL_MIN_HEIGHT_DP.toFloat()) to
@@ -137,6 +144,7 @@ class TailscaleWidgetProvider : AppWidgetProvider() {
     }
 
     private fun layoutFor(widthDp: Int, heightDp: Int): Int = when {
+        widthDp in 1..NARROW_MAX_WIDTH_DP -> R.layout.widget_tailscale_narrow
         widthDp >= WIDE_MIN_WIDTH_DP && heightDp >= TALL_MIN_HEIGHT_DP -> R.layout.widget_tailscale_wide_tall
         heightDp >= TALL_MIN_HEIGHT_DP -> R.layout.widget_tailscale_tall
         heightDp >= NORMAL_MIN_HEIGHT_DP -> R.layout.widget_tailscale
@@ -177,6 +185,16 @@ class TailscaleWidgetProvider : AppWidgetProvider() {
         /** Smallest supported size: minimum breakpoint (single-line + small switch). */
         private const val MIN_WIDTH_DP = 110
         private const val MIN_HEIGHT_DP = 40
+        /**
+         * Narrow breakpoint: a cell narrower than this cannot host any
+         * horizontal layout (side padding + switch alone need ~100 dp), which
+         * is what launchers report for a 2x1 widget after a rotation
+         * (e.g. 50 x 229 dp). The rotated, vertical layout is used instead.
+         */
+        private const val NARROW_MAX_WIDTH_DP = 90
+        /** Ideal size of the narrow layout, used as its Android 12+ size key. */
+        private const val NARROW_MIN_WIDTH_DP = 40
+        private const val NARROW_MIN_HEIGHT_DP = 40
         /** Height at which the full normal layout (title + state) fits. */
         private const val NORMAL_MIN_HEIGHT_DP = 90
         /** Height at which extra vertical breathing room kicks in. */

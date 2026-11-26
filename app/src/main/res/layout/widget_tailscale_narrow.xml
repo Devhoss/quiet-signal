@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Narrow breakpoint: used when the launcher reports a cell narrower than any
+    horizontal layout can honour. Smart Launcher does this after a rotation: a
+    2x1 widget that measured 235 x 50 dp becomes 50 x 229 dp.
+
+    Every horizontal layout needs at least 110 dp of width (20 dp + 16 dp side
+    padding plus the switch), so on a 50 dp cell Android's size-mapped
+    RemoteViews found nothing that fits, fell back to the smallest layout and
+    clipped its whole content away - the widget rendered as an empty housing.
+
+    A tall cell is read along its long axis, so this keeps the 2x1 composition
+    and turns it 90 degrees counter-clockwise: brand at the top, switch at the
+    bottom, both reading bottom-to-top, which is the orientation neighbouring
+    widgets use on a rotated launcher (a clockwise turn reads upside down
+    next to them).
+
+    Each rotated child sits in a wrapper whose size is its *rotated* extent
+    (e.g. 26 x 84 dp for the label) with clipChildren disabled, so the wider
+    unrotated view has room to draw and the vertical flow stays predictable.
+
+    RemoteViews can only inflate classes annotated @RemoteView, so the spacer
+    is a FrameLayout (Space and plain View are rejected and would make the
+    whole layout fail to inflate).
+
+    widget_state is present but GONE so RemoteViews setTextViewText stays safe.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp"
+    android:background="@drawable/widget_glass_obsidian"
+    android:clickable="true"
+    android:focusable="true"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- Brand, reading down the tall axis. -->
+    <FrameLayout
+        android:layout_width="26dp"
+        android:layout_height="84dp"
+        android:clipChildren="false">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="84dp"
+            android:layout_height="26dp"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:rotation="-90"
+            android:text="@string/widget_title"
+            android:textColor="@color/silver_bright"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.04"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:includeFontPadding="false" />
+    </FrameLayout>
+
+    <!-- Extra length stays breathing room; the switch is never stretched. -->
+    <FrameLayout
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Liquid-glass switch, turned with the label (62 x 34 dp rotated). -->
+    <FrameLayout
+        android:layout_width="36dp"
+        android:layout_height="64dp"
+        android:clipChildren="false">
+
+        <ImageView
+            android:id="@+id/widget_switch_view"
+            android:layout_width="64dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:rotation="-90"
+            android:contentDescription="@string/widget_toggle_description"
+            android:src="@drawable/widget_switch_off"
+            android:scaleType="fitCenter" />
+    </FrameLayout>
+
+    <!-- Hidden at the narrow breakpoint: no room for a state line. -->
+    <TextView
+        android:id="@+id/widget_state"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/widget_state_default"
+        android:textColor="@color/silver_subtle"
+        android:textSize="11sp"
+        android:visibility="gone" />
+</LinearLayout>

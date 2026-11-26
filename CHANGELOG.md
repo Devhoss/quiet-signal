@@ -4,6 +4,21 @@ All notable changes to Quiet Signal are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2026-11-26
+
+### Fixed
+
+- The 2×1 widget no longer renders as an empty housing when the device is rotated. A launcher that
+  keeps its portrait grid in landscape reports the cell rotated — Smart Launcher turns 235 × 50 dp
+  into **50 × 229 dp** — and no horizontal layout fits inside that, so Android's size-mapped
+  `RemoteViews` fell back to the smallest layout and clipped all of its content away. A new narrow
+  breakpoint (`widget_tailscale_narrow`) lays the widget out along the tall axis instead: brand at
+  the top, switch at the bottom, both turned counter-clockwise so they read the same way as
+  neighbouring widgets on a rotated launcher. Because the switch is turned with the cell, the thumb
+  points up when the VPN is connected and down when it is not.
+- Narrow layouts can only use views annotated `@RemoteView`; the spacer is a `FrameLayout` because
+  `Space`/`View` would make the whole layout fail to inflate.
+
 ## [1.0.2] - 2026-10-01
 
 ### Fixed
@@ -84,5 +99,6 @@ Initial public release. Open source on GitHub, distributed as a manually install
   Tailscale owns it. Another VPN app produces the same evidence.
 - Connect/disconnect depends on Tailscale's own (unofficial) broadcast receiver contract.
 
+[1.0.3]: https://github.com/Devhoss/quiet-signal/releases/tag/v1.0.3
 [1.0.1]: https://github.com/Devhoss/quiet-signal/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Devhoss/quiet-signal/releases/tag/v1.0.0
